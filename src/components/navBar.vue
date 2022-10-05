@@ -14,6 +14,7 @@
       </v-col>
       <!-- <v-spacer></v-spacer> -->
       <v-col cols="8" class="text-right d-flex justify-end">
+        
         <logIn />
         <createPost class="mt-0" />
         <v-menu offset-y class="px-5">
@@ -28,7 +29,8 @@
             ><br />
             <span style="font-size: 14px" class="py-1">test123@test.com</span>
             <v-divider class="white mt-2 mb-3"></v-divider>
-            <span class="drpdwn-text font-weight-medium">Logout</span>
+            <span class="drpdwn-text font-weight-medium" @click="logout">Logout</span>
+            <ChangePassword />
           </div>
         </v-menu>
         <!-- <v-switch v-model="switch1" inset color="#808080"></v-switch> -->
@@ -47,12 +49,16 @@
 <script>
 import logIn from "./logIn.vue";
 import createPost from "./createPost.vue";
+import changePassword from './changePassword.vue'
+import ChangePassword from "./changePassword.vue";
 export default {
   name: "navBar",
   components: {
     logIn,
     createPost,
-  },
+    changePassword,
+    ChangePassword
+},
 
   data() {
     // let dark_theme = localStorage.getItem(switchThemes) == 'true'
@@ -72,6 +78,9 @@ export default {
   methods:{
     image(){
       this.$router.push({ name: "homeView" });
+    },
+    logout(){
+      localStorage.clear();
     }
   },
 
@@ -108,6 +117,7 @@ export default {
 }
 .drpdwn-text {
   font-size: 15px;
+  cursor:pointer;
 }
 .head-image{
   cursor:pointer;
