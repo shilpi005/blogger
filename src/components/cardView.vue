@@ -1,97 +1,118 @@
 <template>
-    <div class="main-div primary">
-        <p style="color:#fff;font-size:14px;">Posted By: Shivendra Handysolver on 11/5/2021,6:11:41 PM</p>
-    <v-card style="background-color:#808080;color:#fff;margin-bottom:10px;"
+  <div class="main-div primary">
+    <v-progress-circular
+      :size="70"
+      :width="7"
+      color="#808080"
+      indeterminate
+      v-if="sending"
+      style="text-align: center; display: block; margin: auto"
+    ></v-progress-circular>
+    <v-card
+      style="background-color: #808080; color: #fff; margin-bottom: 10px"
       class="mx-auto"
       max-width="1400"
-      v-for="detail in details" :key="detail.id"
+      v-for="detail in details"
+      :key="detail.id"
     >
-    <v-card-title style="font-size:30px;">{{ detail.title }}</v-card-title>
-      <v-card-text class="white--text">
-        {{ detail.desc }}
-      </v-card-text>
+      <v-card-title v-model="cardTitle" style="font-size: 30px">{{
+        detail.title.substring(0,20)+".." 
+      }}</v-card-title>
+      <v-card-text class="white--text" v-html='detail.content.substring(0,300)+".." ' style="color:white"> </v-card-text>
       <v-card-actions>
-        <v-btn class="seeMore ml-2" @click="showmore"
-          text small
-          color="#fff" >
+        <v-btn class="seeMore ml-2" @click="showmore(detail.id)" text small color="#fff">
           see More
         </v-btn>
       </v-card-actions>
-        <v-card-subtitle class="white--text" style="font-size:14px;">posted By: {{ detail.postedby }}</v-card-subtitle>
-      <v-expand-transition>
-        <v-card
-          v-if="reveal"
-          class="transition-fast-in-fast-out v-card--reveal"
-          style="height: 100%;"
-        >
-          <v-card-text class="pb-0">
-            <p class="text-h4 text--primary">
-              Origin
-            </p>
-            <p>late 16th century (as a noun denoting a place where alms were distributed): from medieval Latin eleemosynarius, from late Latin eleemosyna ‘alms’, from Greek eleēmosunē ‘compassion’ </p>
-          </v-card-text>
-          <v-card-actions class="pt-0">
-            <v-btn
-              text
-              color="teal accent-4"
-              @click="reveal = false"
-            >
-              Close
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-expand-transition>
+      <v-card-subtitle class="white--text" style="font-size: 14px">
+        created: {{ moment(detail.created).format("MMMM Do YYYY, h:mm:ss a") }}
+      </v-card-subtitle>
     </v-card>
-</div>
-  </template>
+    <div
+      v-if="details.length"
+      v-observe-visibility="handleScrolledToBottom"
+    ></div>
+  </div>
+</template>
 
   
 <script>
-    export default {
-      data: () => ({
-        reveal: false,
-        title:"Hello",
-        cardText:"helloworld",
+import axios from "axios";
+import Vue from "vue";
+import VueAxios from "vue-axios";
+import API_BASE from "../common/api";
+import moment from "moment";
+import VueLoadmore from "vuejs-loadmore";
+Vue.use(VueAxios, axios, VueLoadmore);
+export default {
+  data: () => ({
+    cardTitle: "",
+    cardText: "",
+    sending: false,
+    API_BASE: API_BASE,
+    details: [],
+    moment: moment,
+    page: 1,
+    lastPage: 1,
+  }),
+  mounted() {
+    this.getuserPostdata();
+  },
+  methods: {
+    showmore(id) {
+      //console.log("id", id)
+      this.$router.push({ 
+        name: "showMore" ,
+        params: {id:id}
+      });
+    },
+    getuserPostdata() {
+      this.sending = true;
 
-        details:[
-          {id:1, 
-            title:'lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum',
-            desc:' lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum',
-            postedby:'Shivendra Handysolver'
-          },
-          {id:2, 
-            title:'lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum',
-            desc:' lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum',
-            postedby:'Shivendra Handysolver'
-          },
-          {id:3, 
-            title:'lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum',
-            desc:' lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum',
-            postedby:'Shivendra Handysolver'
-          }
-        ]
-
-      }),
-      methods:{
-            showmore(){
-              this.$router.push({ name: "showMore" });
-            },
-    }
-  }
-  </script>
+      const authUser = {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+        },
+      };
+      axios
+        .get(
+          API_BASE +
+            "blog/" +
+            "?page_number=" +
+            this.page ,
+          authUser
+        )
+        .then((response) => {
+          this.details.push(...response.data.data);
+          this.lastPage = response.data.page_info.page_total;
+          this.sending = false;
+        });
+    },
+   
+    handleScrolledToBottom(isVisible) {
+      if (!isVisible) {
+        return;
+      }
+      if (this.page >= this.lastPage) {
+        return;
+      }
+      //console.log("abc");
+      this.page++;
+      this.getuserPostdata();
+    },
+  },
+};
+</script>
   <style>
-    .main-div{
-      
-      min-height:100vh;
-      padding:30px 70px;
-    }
-    .v-card--reveal {
-      bottom: 0;
-      opacity: 1 !important;
-      position: absolute;
-      width: 100%;
-    }
-    .seeMore{
-        background-color: #000000;
-    }
-    </style>
+.main-div {
+  min-height: 100vh;
+  padding: 30px 70px;
+}
+.mypost{
+  cursor:pointer;
+  text-decoration: underline;
+}
+.seeMore {
+  background-color: #000000;
+}
+</style>

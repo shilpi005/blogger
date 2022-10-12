@@ -1,8 +1,7 @@
 <template>
-  <!-- <v-row justify="end" class="text-right"> -->
   <v-dialog v-model="dialog" persistent max-width="600px" scrollable>
     <template v-slot:activator="{ on, attrs }">
-      <v-btn color="#808080" class="mr-3" dark v-bind="attrs" v-on="on" v-if="buttonToggle? false:true">
+      <v-btn color="#808080" class="mr-3" dark v-bind="attrs" v-on="on">
         Login/signup
       </v-btn>
     </template>
@@ -22,7 +21,7 @@
               <v-text-field
                 type="email"
                 v-model="email"
-                label="E.g. abc@xyz.co.in"
+                placeholder="E.g. abc@xyz.co.in"
                 single-line
                 solo
                 flat
@@ -40,7 +39,7 @@
                 solo
                 flat
                 :append-icon="eye ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="toggleMarker"
+                @click:append="eye = !eye"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -58,6 +57,7 @@
             @click="submit()"
             justify-left
             color="#808080"
+            :loading="loading"
           >
             Login
           </v-btn>
@@ -76,8 +76,8 @@
         </v-btn>
       </v-card-title>
 
-      <v-form lazy-validation ref="signupForm">
-        <v-card-text class="form-card py-4">
+      <v-card-text class="form-card py-4">
+        <v-form lazy-validation ref="signupForm">
           <v-row no-gutters>
             <v-col cols="12" sm="12">
               <span class="white--text">Name</span>
@@ -133,20 +133,17 @@
               ></v-text-field>
             </v-col>
           </v-row>
-        </v-card-text>
+        </v-form>
+      </v-card-text>
+      <v-card-actions style="background-color: #000000">
+        <v-spacer></v-spacer>
 
-        <!-- <v-divider></v-divider> -->
-        <v-card-actions style="background-color: #000000">
-          <v-spacer></v-spacer>
-
-          <v-btn class="white--text" color="#808080" @click="submitSignup()">
-            Signup
-          </v-btn>
-        </v-card-actions>
-      </v-form>
+        <v-btn class="white--text" color="#808080" @click="submitSignup()">
+          Signup
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
-  <!-- </v-row> -->
 </template>
   
 <script>
@@ -154,16 +151,17 @@ import rules from "@/common/fieldRule";
 import axios from "axios";
 import Vue from "vue";
 import VueAxios from "vue-axios";
-
+import { eventBus } from "../main";
 import API_BASE from "../common/api";
-// import setAuthHeader from '../utils/setAuthHeader';
-Vue.use(VueAxios,axios)
+
+Vue.use(VueAxios, axios);
 export default {
   name: "logIn",
 
   data: () => ({
     eye1: false,
     dialog: false,
+    loading: false,
     eye: false,
     show: true,
     email: "",
@@ -174,7 +172,6 @@ export default {
     conpass: "",
     rules: rules,
     API_BASE: API_BASE,
-    accessToken:''
   }),
   watch: {
     dialog() {
@@ -183,20 +180,11 @@ export default {
       else this.closeModal();
     },
   },
-  computed:{
-    buttonToggle(){
-      console.log('jsjsj',localStorage.getItem('access_token'))
-      return(
-        localStorage.getItem('access_token')
-      )
-    }
+  mounted() {
+    this.getuserId();
   },
   methods: {
-    toggleMarker() {
-      this.eye = !this.eye;
-    },
     clicked() {
-      // this.show=!this.show
       this.show = false;
     },
     openModal() {
@@ -219,27 +207,34 @@ export default {
     submit() {
       if (this.$refs.loginForm.validate()) {
         console.log("validate");
-        
+        this.loading = true;
         const body = {
-            email: this.email,
-            password: this.password,
-          };
+          email: this.email,
+          password: this.password,
+        };
 
-          Vue.axios
-            .post(API_BASE + "user/login/", body)
-            .then((response) => {
-              console.log(response.data.data.access_token);
-              localStorage.setItem('access_token',response.data.data.access_token)
-              localStorage.setItem('refresh_token',response.data.data.refresh_token)
-                console.log(response)
-              this.dialog=false
-            })
-            .catch((error) => {
-              console.log("Error:::::::::::::", error);
-              // this.signupLoader = false;
-            });
-
-
+        Vue.axios
+          .post(API_BASE + "user/login/", body)
+          .then((response) => {
+            this.loading = false;
+            console.log(response.data.data.access_token);
+            localStorage.setItem(
+              "access_token",
+              response.data.data.access_token
+            );
+            localStorage.setItem(
+              "refresh_token",
+              response.data.data.refresh_token
+            );
+            eventBus.$emit("logged_out");
+            this.dialog = false;
+            this.getuserId();
+          })
+          .catch((error) => {
+            this.loading = false;
+            console.log("Error:::::::::::::", error);
+            alert("An error occured, please login again");
+          });
       } else {
         console.log("not validtae");
       }
@@ -269,28 +264,44 @@ export default {
             .post(API_BASE + "user/register/", body)
             .then((response) => {
               console.log(response.data.data.access_token);
-              localStorage.setItem('access_token',response.data.data.access_token)
-              localStorage.setItem('refresh_token',response.data.data.refresh_token)
+              localStorage.setItem(
+                "access_token",
+                response.data.data.access_token
+              );
+              localStorage.setItem(
+                "refresh_token",
+                response.data.data.refresh_token
+              );
 
-              this.dialog=false
+              this.dialog = false;
+              alert("you have registered successfully");
             })
             .catch((error) => {
               console.log("Error:::::::::::::", error);
+              alert("An error occured, please Signup Again");
               // this.signupLoader = false;
             });
           // this.rules;
         }
       }
     },
-    checkStorage(){
-      this.accessToken = localStorage.getItem('access_token')
+    getuserId() {
+      const authUser = {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("access_token"),
+        },
+      };
+
+      axios.get(API_BASE + "/user/profile/", authUser).then((response) => {
+        console.log(response.data);
+        localStorage.setItem("user_id", response.data.data.id);
+        localStorage.setItem("full_name", response.data.data.full_name);
+        localStorage.setItem("email", response.data.data.email);
+        //  console.log(response.data.data.id)
+        //  console.log(response.data.data.full_name)
+      });
     },
   },
-  mounted(){
-    this.checkStorage()
-   
-    console.log(this.accessToken)
-  }
 };
 </script>
 

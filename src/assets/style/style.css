@@ -1,0 +1,17 @@
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: #bdbdbd;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #808080;
+    border-radius: 20px;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    margin: 0;
+} 

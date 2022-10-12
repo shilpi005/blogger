@@ -3,14 +3,15 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
+import VueObserveVisibility from 'vue-observe-visibility'
+
+Vue.use(VueObserveVisibility)
 
 Vue.config.productionTip = false
 
-if(localStorage.jwtToken){
-  setAuthHeader(localStorage.jwtToken);
-}else{
-setAuthHeader(false);
-}
+export const eventBus = new Vue();
+
+
 
 new Vue({
   router,
@@ -18,5 +19,3 @@ new Vue({
   vuetify,
   render: h => h(App)
 }).$mount('#app')
-
-import setAuthHeader from "./utils/setAuthHeader";

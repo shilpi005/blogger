@@ -9,4 +9,10 @@ export default {
         }
         return "Invalid Email";
       },
+      heading: (val) =>{
+        if(val.length<=200){
+         return true;
+        }
+        return "Title should not exceed 200 characters";
+      },
 }
